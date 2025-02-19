@@ -19,7 +19,7 @@ const server = http.createServer(web_server);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:5173", // Adjust to match frontend URL
+        origin: "https://myfirst-socialplatform.netlify.app/", // Adjust to match frontend URL
         methods: ["GET", "POST"]
     }
 });
@@ -56,7 +56,7 @@ web_server.get("/",(req,res)=>{
     })
 })
 //listen server
-web_server.listen(process.env.HOST_PORT,process.env.HOST_NAME,()=>{
+server.listen(process.env.HOST_PORT,process.env.HOST_NAME,()=>{
     console.log("server started successfully");
     console.log(`http://${process.env.HOST_NAME}:${process.env.HOST_PORT}/`);
 })
