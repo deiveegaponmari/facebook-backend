@@ -9,8 +9,11 @@ require('dotenv').config()
 var cors=require("cors");
 
 const{ UserRouter }=require("./controller/UserController")
+const {  MediaRouter }=require("./controller/MediaRouter")
 //import message modal
-const message=require("./model/MessageModel");
+const Message=require("./model/MessageModel");
+//import cloudinary
+const cloudinary=require("./config/cloudinary")
 const web_server=express();
 //body-parser
 web_server.use(express.json())
@@ -30,7 +33,7 @@ io.on("connection",async (socket) => {
 
     // Send previous messages from MongoDB when a new user connects
     try {
-        const messages = await message.find().sort({ timestamp: 1 }); // Fetch in order
+        const messages = await Message.find().sort({ timestamp: 1 }); // Fetch in order
         socket.emit("previous_messages", messages);
     } catch (error) {
         console.error("Error fetching messages:", error);
@@ -42,7 +45,7 @@ io.on("connection",async (socket) => {
 
         // Save message to MongoDB
         try {
-            const newMessage = new message({ text: data });
+            const newMessage = new Message({ text: data });
             await newMessage.save();
             io.emit("receive_message", newMessage); // Broadcast message
         } catch (error) {
@@ -58,6 +61,7 @@ io.on("connection",async (socket) => {
 
 //Routers injection
 web_server.use("/user",UserRouter)
+web_server.use("/media",MediaRouter);
 
 //create
 web_server.post('/create',(req,res)=>{
