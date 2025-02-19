@@ -19,7 +19,7 @@ const server = http.createServer(web_server);
 
 const io = new Server(server, {
     cors: {
-        origin: "https://myfirst-socialplatform.netlify.app/", // Adjust to match frontend URL
+        origin: "*", // Adjust to match frontend URL
         methods: ["GET", "POST"]
     }
 });
