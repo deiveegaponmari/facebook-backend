@@ -9,7 +9,8 @@ require('dotenv').config()
 var cors=require("cors");
 
 const{ UserRouter }=require("./controller/UserController")
-
+//import message modal
+const message=require("./model/MessageModel");
 const web_server=express();
 //body-parser
 web_server.use(express.json())
@@ -24,13 +25,29 @@ const io = new Server(server, {
     }
 });
 // Listen for client connections
-io.on("connection", (socket) => {
+io.on("connection",async (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Listen for incoming chat messages
-    socket.on("send_message", (data) => {
+    // Send previous messages from MongoDB when a new user connects
+    try {
+        const messages = await message.find().sort({ timestamp: 1 }); // Fetch in order
+        socket.emit("previous_messages", messages);
+    } catch (error) {
+        console.error("Error fetching messages:", error);
+    }
+
+    // Listen for new messages
+    socket.on("send_message", async (data) => {
         console.log("Message received:", data);
-        io.emit("receive_message", data); // Broadcast to all clients
+
+        // Save message to MongoDB
+        try {
+            const newMessage = new message({ text: data });
+            await newMessage.save();
+            io.emit("receive_message", newMessage); // Broadcast message
+        } catch (error) {
+            console.error("Error saving message:", error);
+        }
     });
 
     // Handle disconnect
