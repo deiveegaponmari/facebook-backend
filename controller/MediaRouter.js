@@ -1,17 +1,13 @@
 const MediaRouter = require("express").Router();
-const mediaModel = require("../model/UploadMedia");
+const mediaModel = require("../model/UploadMedia"); // MongoDB Model
 const cloudinary = require("cloudinary").v2;
-const multer = require('multer')
-const path = require("path");
+const multer = require("multer");
+require("dotenv").config();
 
-//multer configure 
-
-// Ensure files are stored with original names
-
+// Configure Multer (Memory Storage)
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-require("dotenv").config();
 // Cloudinary Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -19,52 +15,57 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// **Upload Media to Cloudinary & Store in MongoDB**
 MediaRouter.post("/createmedia", upload.single("file"), async (req, res) => {
-  console.log("Received file:", req.file); // Debugging
+  // print('image upload api incoimng with req :- '+req);
+  console.info("image upload api incoimng with req :-", req);
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
- // console.log(req.file)
-  const filepath = req.file.path;
-  console.log(filepath);
+
   try {
-    const result = await cloudinary.uploader.upload_stream(
+    // Upload file to Cloudinary
+    cloudinary.uploader.upload_stream(
       { resource_type: "auto" },
-      (error, result) => {
+      async (error, result) => {
         if (error) {
           console.error("Cloudinary Upload Error:", error);
           return res.status(500).json({ error: "Upload to Cloudinary failed" });
         }
-        console.log("Cloudinary Upload Success:", result);
+
+        // Determine if file is image or video
+        const isImage = result.resource_type === "image";
+
+        // Save to MongoDB
+        const newMedia = new mediaModel({
+          imageUrl: isImage ? result.secure_url : null,
+          videoUrl: !isImage ? result.secure_url : null,
+        });
+
+        await newMedia.save();
+
         res.json({ message: "File uploaded successfully", url: result.secure_url });
       }
-    ).end(req.file.buffer); // ✅ Upload file directly from memory
+    ).end(req.file.buffer); // ✅ Upload directly from memory
   } catch (error) {
     console.error("File not uploaded:", error);
     res.status(500).json({ error: "File upload failed" });
   }
 });
- /*  try {
-    const result = await cloudinary.uploader.upload(filepath);
-    console.log(result)
-  } catch (error) {
-    console.log("file not upload")
-  }
-}) */
-
-// Fetch Media from MongoDB
+// **Fetch Media from MongoDB**
 MediaRouter.get("/getfile", async (req, res) => {
   try {
-    const media = await mediaModel.find();
-     // Transform data to match frontend expectations
-     const formattedData = mediaFiles.map((file) => ({
+    const mediaFiles = await mediaModel.find(); // Fetch from DB
+
+    // Transform data to match frontend expectations
+    const formattedData = mediaFiles.map((file) => ({
       src: file.imageUrl || file.videoUrl, // Use imageUrl or videoUrl
       type: file.imageUrl ? "image" : "video", // Determine type
     }));
 
     res.json(formattedData);
-    res.json(media);
   } catch (error) {
+    console.error("Error fetching media:", error);
     res.status(500).json({ message: "Error fetching media" });
   }
 });
