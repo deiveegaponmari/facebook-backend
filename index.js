@@ -6,15 +6,15 @@ const { Server } = require('socket.io');
 //import mongodb connection
 require("./dbconfig")
 require('dotenv').config()
-var cors=require("cors");
+var cors = require("cors");
 
-const  UserRouter =require("./controller/UserController")
-const   MediaRouter =require("./controller/MediaRouter")
+const UserRouter = require("./controller/UserController")
+const MediaRouter = require("./controller/MediaRouter")
 //import message modal
-const Message=require("./model/MessageModel");
+const Message = require("./model/MessageModel");
 //import cloudinary
 //const cloudinary=require("./config/cloudinary")
-const web_server=express();
+const web_server = express();
 //body-parser
 web_server.use(express.json())
 web_server.use(cors())
@@ -33,7 +33,7 @@ const io = new Server(server, {
     }
 });
 // Listen for client connections
-io.on("connection",async (socket) => {
+io.on("connection", async (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     // Send previous messages from MongoDB when a new user connects
@@ -57,7 +57,11 @@ io.on("connection",async (socket) => {
             console.error("Error saving message:", error);
         }
     });
-
+    // Handle Like Event
+    socket.on("like_post", ({ postId, username }) => {
+        console.log(`Post ${postId} liked by ${username}`);
+        io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
+    });
     // Handle disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
@@ -65,24 +69,24 @@ io.on("connection",async (socket) => {
 });
 
 //Routers injection
-web_server.use("/user",UserRouter)
-web_server.use("/media",MediaRouter);
+web_server.use("/user", UserRouter)
+web_server.use("/media", MediaRouter);
 
 //create
-web_server.post('/create',(req,res)=>{
+web_server.post('/create', (req, res) => {
     res.status(200).json({
-        message:"data created successfully",
-        data:req.body
+        message: "data created successfully",
+        data: req.body
     })
 })
 //read
-web_server.get("/",(req,res)=>{
+web_server.get("/", (req, res) => {
     res.status(200).json({
-        message:"Data read success"
+        message: "Data read success"
     })
 })
 //listen server
-server.listen(process.env.HOST_PORT,process.env.HOST_NAME,()=>{
+server.listen(process.env.HOST_PORT, process.env.HOST_NAME, () => {
     console.log("server started successfully");
     console.log(`http://${process.env.HOST_NAME}:${process.env.HOST_PORT}/`);
 })

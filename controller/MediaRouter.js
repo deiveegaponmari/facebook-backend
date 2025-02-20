@@ -56,6 +56,13 @@ MediaRouter.post("/createmedia", upload.single("file"), async (req, res) => {
 MediaRouter.get("/getfile", async (req, res) => {
   try {
     const media = await mediaModel.find();
+     // Transform data to match frontend expectations
+     const formattedData = mediaFiles.map((file) => ({
+      src: file.imageUrl || file.videoUrl, // Use imageUrl or videoUrl
+      type: file.imageUrl ? "image" : "video", // Determine type
+    }));
+
+    res.json(formattedData);
     res.json(media);
   } catch (error) {
     res.status(500).json({ message: "Error fetching media" });
