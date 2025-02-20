@@ -48,3 +48,5 @@ console.log(url) */
 
 })();
 module.exports = cloudinary;
+
+module.exports=cloudinary;

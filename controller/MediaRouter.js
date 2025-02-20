@@ -1,52 +1,65 @@
-const MediaRouter=require("express").Router();
-const Media=require("../model/UploadMedia")
-const multer = require("multer");
+const MediaRouter = require("express").Router();
+const mediaModel = require("../model/UploadMedia");
+const cloudinary = require("cloudinary").v2;
+const multer = require('multer')
 const path = require("path");
 
-// Configure storage for uploaded files
-const storage = multer.diskStorage({
-  destination: "uploads/", // Folder to store uploaded files
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
+//multer configure 
+
+// Ensure files are stored with original names
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+require("dotenv").config();
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const upload = multer({ storage });
-
-//post media from client
-MediaRouter.post("/createmedia", upload.single("media"), async (req, res) => {
+MediaRouter.post("/createmedia", upload.single("file"), async (req, res) => {
+  console.log("Received file:", req.file); // Debugging
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-
+ // console.log(req.file)
+  const filepath = req.file.path;
+  console.log(filepath);
   try {
-    const newMedia = new Media({
-      imageUrl: `/uploads/${req.file.filename}`, // Store file path in MongoDB
-    });
-
-    const savedMedia = await newMedia.save();
-
-    console.log("File received:", req.file);
-
-    res.json({
-      message: "File uploaded successfully",
-      fileUrl: savedMedia.imageUrl, // Return stored file URL
-    });
+    const result = await cloudinary.uploader.upload_stream(
+      { resource_type: "auto" },
+      (error, result) => {
+        if (error) {
+          console.error("Cloudinary Upload Error:", error);
+          return res.status(500).json({ error: "Upload to Cloudinary failed" });
+        }
+        console.log("Cloudinary Upload Success:", result);
+        res.json({ message: "File uploaded successfully", url: result.secure_url });
+      }
+    ).end(req.file.buffer); // ✅ Upload file directly from memory
   } catch (error) {
-    console.error("Error saving to MongoDB:", error);
-    res.status(500).json({ error: "Error saving file to database" });
+    console.error("File not uploaded:", error);
+    res.status(500).json({ error: "File upload failed" });
   }
 });
-// Get All Media
-MediaRouter.get('/media', async (req, res) => {
-    try {
-      const media = await Media.find();
-      res.json(media);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching media' });
-    }
-  });
-module.exports={
-    MediaRouter
-}
+ /*  try {
+    const result = await cloudinary.uploader.upload(filepath);
+    console.log(result)
+  } catch (error) {
+    console.log("file not upload")
+  }
+}) */
+
+// Fetch Media from MongoDB
+MediaRouter.get("/getfile", async (req, res) => {
+  try {
+    const media = await mediaModel.find();
+    res.json(media);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching media" });
+  }
+});
+
 module.exports = MediaRouter;

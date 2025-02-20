@@ -13,4 +13,5 @@ mediaSchema.pre('validate', function (next) {
     next();
   }
 });
-module.exports = mongoose.model('Media', mediaSchema);
+const mediaModel = mongoose.model('Media', mediaSchema);
+module.exports=mediaModel;
