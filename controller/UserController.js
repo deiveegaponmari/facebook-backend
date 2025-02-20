@@ -121,6 +121,4 @@ UserRouter.post("/signin", async (req, res) => {
     }
 
 }) */
-module.exports={
-    UserRouter
-}
+module.exports= UserRouter;

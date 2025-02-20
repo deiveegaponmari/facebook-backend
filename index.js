@@ -8,8 +8,8 @@ require("./dbconfig")
 require('dotenv').config()
 var cors=require("cors");
 
-const{ UserRouter }=require("./controller/UserController")
-const {  MediaRouter }=require("./controller/MediaRouter")
+const  UserRouter =require("./controller/UserController")
+const   MediaRouter =require("./controller/MediaRouter")
 //import message modal
 const Message=require("./model/MessageModel");
 //import cloudinary
@@ -18,6 +18,11 @@ const web_server=express();
 //body-parser
 web_server.use(express.json())
 web_server.use(cors())
+web_server.use(express.urlencoded({ extended: true })); // Parse URL-encoded data
+
+
+// Serve static files (for uploaded media)
+web_server.use("/uploads", express.static("uploads"));
 //enable http server
 const server = http.createServer(web_server);
 
