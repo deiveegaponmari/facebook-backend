@@ -10,7 +10,7 @@ var cors = require("cors");
 
 const UserRouter = require("./controller/UserController")
 const MediaRouter = require("./controller/MediaRouter")
-const  PostRouter =require("./controller/PostRouter")
+const PostRouter = require("./controller/PostRouter")
 //import message modal
 const Message = require("./model/MessageModel");
 //import cloudinary
@@ -64,15 +64,26 @@ io.on("connection", async (socket) => {
         io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
     });
     // Handle disconnect
+  /*   socket.on("disconnect", () => {
+        console.log("User disconnected:", socket.id);
+    }); */
+    //Handle comment Event
+    socket.on("comment_post", ({ postId, username }) => {
+        console.log(`Post ${postId} liked by ${username}`);
+        io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
+    });
+    // Handle disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
     });
 });
 
+
+
 //Routers injection
 web_server.use("/user", UserRouter)
 web_server.use("/media", MediaRouter);
-web_server.use("/post",  PostRouter)
+web_server.use("/post", PostRouter)
 
 //create
 web_server.post('/create', (req, res) => {
