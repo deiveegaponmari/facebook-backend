@@ -78,6 +78,8 @@ io.on("connection", async (socket) => {
         console.log(`Post ${action} friendRequest by ${action}`);
         io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
     })
+
+    
     // Handle disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
