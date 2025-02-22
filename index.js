@@ -69,9 +69,15 @@ io.on("connection", async (socket) => {
     }); */
     //Handle comment Event
     socket.on("comment_post", ({ postId, username }) => {
-        console.log(`Post ${postId} liked by ${username}`);
+        console.log(`Post ${postId}  comment by ${username}`);
         io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
     });
+
+    //handle friend Request event
+    socket.on("Friend_Request",({action,username})=>{
+        console.log(`Post ${action} friendRequest by ${action}`);
+        io.emit("notification", { message: ` FriendRequest ${action}ed  !` }); // Broadcast notification
+    })
     // Handle disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
