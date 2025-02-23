@@ -49,24 +49,25 @@ io.on("connection", async (socket) => {
     socket.on("send_message", async (data) => {
         console.log("Message received:", data);
 
-        // Save message to MongoDB
+       // Save message to MongoDB
         try {
             const newMessage = new Message({ text: data });
             await newMessage.save();
             io.emit("receive_message", newMessage); // Broadcast message
+            
         } catch (error) {
             console.error("Error saving message:", error);
         }
     });
+    //handle realtime chat notification enable
+    socket.on("realtime_chat",({username})=>{
+        io.emit("realtime_chat",{message:` ${username}New message received`}) 
+    }) 
     // Handle Like Event
     socket.on("like_post", ({ postId, username }) => {
         console.log(`Post ${postId} liked by ${username}`);
         io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
     });
-    // Handle disconnect
-  /*   socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-    }); */
     //Handle comment Event
     socket.on("comment_post", ({ postId, username }) => {
         console.log(`Post ${postId}  comment by ${username}`);
@@ -78,8 +79,11 @@ io.on("connection", async (socket) => {
         console.log(`Post ${action} friendRequest by ${action}`);
         io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
     })
-
-    
+     // Handle post notify Event
+    socket.on("post_uploaded", ({ postId, username }) => {
+        console.log(`Post uploaded by ${username}`);
+        io.emit("post_notification", { message: `${username} uploaded a new post!` }); // Broadcast notification
+    });
     // Handle disconnect
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
