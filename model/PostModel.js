@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 
 const postSchema = new mongoose.Schema({
   imageUrl: { type: String, required: false },
-  videoUrl: { type: String, required: false }
+  videoUrl: { type: String, required: false },
+  postId:{
+    type:Number,
+  }
 }, { timestamps: true });
 
 // Custom validation: At least one field should be present

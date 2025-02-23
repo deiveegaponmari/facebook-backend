@@ -70,4 +70,18 @@ PostRouter.get("/getpost", async (req, res) => {
   }
 });
 
+PostRouter.get("/share/:postId", async (req, res) => {
+  const { postId } = req.params;
+  
+  try {
+    const post = await PostModel.findById(postId);
+    if (!post) return res.status(404).json({ error: "Post not found" });
+
+    const shareUrl =`${process.env.FRONTEND_URL}/post/${postId}`;
+    res.json({ shareUrl });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 module.exports = PostRouter;
