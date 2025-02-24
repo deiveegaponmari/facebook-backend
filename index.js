@@ -54,6 +54,10 @@ io.on("connection", async (socket) => {
             const recipientSocketId = users.get(recipientId); // Get recipient's socket ID
             if (recipientSocketId) {
                 io.to(recipientSocketId).emit("receive_message", newMessage); // Send to specific user
+                io.to(recipientSocketId).emit("new_message_notification", {
+                    senderId,
+                    message: "You have a new message!"
+                }); // Send notification event
             }
             
             // Optionally notify the sender (acknowledgment)
