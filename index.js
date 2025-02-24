@@ -34,61 +34,96 @@ const io = new Server(server, {
     }
 });
 // Listen for client connections
+const users = new Map(); // Store userId -> socketId mapping
 io.on("connection", async (socket) => {
     console.log(`User connected: ${socket.id}`);
 
+      // Listen for a user joining (client must send userId after connection)
+    socket.on("register", (userId) => {
+        users.set(userId, socket.id); // Store the user's socket ID
+        console.log(`User registered: ${userId} -> ${socket.id}`);
+    });
+      // Listen for new messages
+    socket.on("send_message", async ({ senderId, recipientId, text }) => {
+        console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
+        
+        try {
+            const newMessage = new Message({ senderId, recipientId, text });
+            await newMessage.save();
+
+            const recipientSocketId = users.get(recipientId); // Get recipient's socket ID
+            if (recipientSocketId) {
+                io.to(recipientSocketId).emit("receive_message", newMessage); // Send to specific user
+            }
+            
+            // Optionally notify the sender (acknowledgment)
+            socket.emit("message_sent", { success: true });
+        } catch (error) {
+            console.error("Error saving message:", error);
+            socket.emit("message_sent", { success: false, error: "Message failed to send" });
+        }
+    });
+ // Handle Like Event
+ socket.on("like_post", ({ postId, username }) => {
+    console.log(`Post ${postId} liked by ${username}`);
+    io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
+});
+//Handle comment Event
+socket.on("comment_post", ({ postId, username }) => {
+    console.log(`Post ${postId}  comment by ${username}`);
+    io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
+});
+
+//handle friend Request event
+socket.on("notification",({action,username})=>{
+    console.log(`Post ${action} friendRequest by ${action}`);
+    io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
+})
+ // Handle post notify Event
+socket.on("post_uploaded", ({ postId, username }) => {
+    console.log(`Post uploaded by ${username}`);
+    io.emit("post_notification", { message: `${username} uploaded a new post!` }); // Broadcast notification
+});
+    // Handle user disconnect
+    socket.on("disconnect", () => {
+        for (let [userId, socketId] of users.entries()) {
+            if (socketId === socket.id) {
+                users.delete(userId);
+                console.log(`User ${userId} disconnected`);
+                break;
+            }
+        }
+    });
+});
     // Send previous messages from MongoDB when a new user connects
-    try {
+   /*  try {
         const messages = await Message.find().sort({ timestamp: 1 }); // Fetch in order
         socket.emit("previous_messages", messages);
     } catch (error) {
         console.error("Error fetching messages:", error);
-    }
+    } */
 
     // Listen for new messages
-    socket.on("send_message", async (data) => {
+ /*    socket.on("send_message", async (data) => {
         console.log("Message received:", data);
-
+        socket.emit() */
        // Save message to MongoDB
-        try {
+       /*  try {
             const newMessage = new Message({ text: data });
             await newMessage.save();
             io.emit("receive_message", newMessage); // Broadcast message
             
         } catch (error) {
             console.error("Error saving message:", error);
-        }
-    });
+        } */
+  /*   }); */
     //handle realtime chat notification enable
-    socket.on("realtime_chat",({username})=>{
-        io.emit("realtime_chat",{message:` ${username}New message received`}) 
-    }) 
-    // Handle Like Event
-    socket.on("like_post", ({ postId, username }) => {
-        console.log(`Post ${postId} liked by ${username}`);
-        io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
-    });
-    //Handle comment Event
-    socket.on("comment_post", ({ postId, username }) => {
-        console.log(`Post ${postId}  comment by ${username}`);
-        io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
-    });
+    /* // socket.on("realtime_chat",({username})=>{
+    //     io.emit("realtime_chat",{message:` ${username}New message received`}) 
+    // }) 
+    */
 
-    //handle friend Request event
-    socket.on("notification",({action,username})=>{
-        console.log(`Post ${action} friendRequest by ${action}`);
-        io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
-    })
-     // Handle post notify Event
-    socket.on("post_uploaded", ({ postId, username }) => {
-        console.log(`Post uploaded by ${username}`);
-        io.emit("post_notification", { message: `${username} uploaded a new post!` }); // Broadcast notification
-    });
-    // Handle disconnect
-    socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-    });
-});
+
 
 
 
