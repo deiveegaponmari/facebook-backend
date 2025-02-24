@@ -34,33 +34,30 @@ const io = new Server(server, {
     }
 });
 // Listen for client connections
-const users = new Map(); // Store userId -> socketId mapping
-io.on("connection", async (socket) => {
-    console.log(`User connected: ${socket.id}`);
+const users = new Map();
 
-      // Listen for a user joining (client must send userId after connection)
-    socket.on("register", (userId) => {
-        users.set(userId, socket.id); // Store the user's socket ID
+io.on("connection", (socket) => {
+    console.log(`User connected: ${socket.id}`);
+     socket.on("register", (userId) => {
+        users.set(userId, socket.id);
         console.log(`User registered: ${userId} -> ${socket.id}`);
     });
-      // Listen for new messages
+
     socket.on("send_message", async ({ senderId, recipientId, text }) => {
         console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
-        
+
         try {
             const newMessage = new Message({ senderId, recipientId, text });
             await newMessage.save();
 
-            const recipientSocketId = users.get(recipientId); // Get recipient's socket ID
+            const recipientSocketId = users.get(recipientId);
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit("receive_message", newMessage); // Send to specific user
+                io.to(recipientSocketId).emit("receive_message", newMessage);
                 io.to(recipientSocketId).emit("new_message_notification", {
                     senderId,
                     message: "You have a new message!"
-                }); // Send notification event
+                });
             }
-            
-            // Optionally notify the sender (acknowledgment)
             socket.emit("message_sent", { success: true });
         } catch (error) {
             console.error("Error saving message:", error);
