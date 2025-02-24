@@ -29,7 +29,7 @@ const server = http.createServer(web_server);
 
 const io = new Server(server, {
     cors: {
-        origin: "*", // Adjust to match frontend URL
+        origin: "*", 
         methods: ["GET", "POST"]
     }
 });
