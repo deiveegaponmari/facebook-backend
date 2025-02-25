@@ -55,11 +55,18 @@ io.on("connection", async (socket) => {
 
   // Send message event (listen the messages from client or user)
   socket.on("send_message", async ({ senderId, recipientId, text }) => {
-    console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
+    console.log("📨 Received send_message event:", { senderId, recipientId, text });
+    //console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
 
+    if (!senderId || !recipientId || !text) {
+      console.error("Error: Missing senderId, recipientId, or text");
+      return;
+    }
     try {
       const newMessage = new Message({ senderId, recipientId, text });
+      console.log("📝 Message Before Saving:", newMessage);
       await newMessage.save();
+      console.log("✅ Message Saved to MongoDB:", newMessage);
 
       const recipientSocketId = users.get(recipientId);
       if (recipientSocketId) {
