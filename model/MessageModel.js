@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema({
    senderId:{
-        type:Number
+        type:String,
+        required:true
     } ,
     recipientId:{
-        type:Number
+        type:String,
+        required:true
     },
     text: {
         type: String,
