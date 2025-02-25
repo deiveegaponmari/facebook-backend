@@ -33,8 +33,9 @@ io.on("connection", async (socket) => {
   socket.on("register", (userId) => {
     users.set(userId, socket.id);
     console.log(`User registered: ${userId} -> ${socket.id}`);
+    console.log("Current users map:", users)
   });
-  console.log(users)
+  //console.log(users)
 
   // Retrieve previous messages from MongoDB
   socket.on("load_messages", async ({ senderId, recipientId }) => {
