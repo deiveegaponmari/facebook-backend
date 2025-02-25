@@ -36,7 +36,36 @@ io.on("connection", async (socket) => {
     console.log("Current users map:", users)
   });
   //console.log(users)
+// Send message event (listen the messages from client or user)
+socket.on("send_message", async ({ senderId, recipientId, text }) => {
+  console.log("📨 Received send_message event:", { senderId, recipientId, text });
+  //console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
 
+  if (!senderId || !recipientId || !text) {
+    console.error("Error: Missing senderId, recipientId, or text");
+    return;
+  }
+  try {
+    const newMessage = new Message({ senderId, recipientId, text });
+    console.log("📝 Message Before Saving:", newMessage);
+    await newMessage.save();
+    console.log("✅ Message Saved to MongoDB:", newMessage);
+
+    const recipientSocketId = users.get(recipientId);
+    if (recipientSocketId) {
+      io.to(recipientSocketId).emit("receive_message", newMessage);
+      io.to(recipientSocketId).emit("new_message_notification", {
+        senderId,
+        message: "You have a new message!",
+      });
+    }
+
+    socket.emit("message_sent", { success: true });
+  } catch (error) {
+    console.error("Error saving message:", error);
+    socket.emit("message_sent", { success: false, error: "Message failed to send" });
+  }
+});
   // Retrieve previous messages from MongoDB
   socket.on("load_messages", async ({ senderId, recipientId }) => {
     try {
@@ -53,36 +82,7 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // Send message event (listen the messages from client or user)
-  socket.on("send_message", async ({ senderId, recipientId, text }) => {
-    console.log("📨 Received send_message event:", { senderId, recipientId, text });
-    //console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
-
-    if (!senderId || !recipientId || !text) {
-      console.error("Error: Missing senderId, recipientId, or text");
-      return;
-    }
-    try {
-      const newMessage = new Message({ senderId, recipientId, text });
-      console.log("📝 Message Before Saving:", newMessage);
-      await newMessage.save();
-      console.log("✅ Message Saved to MongoDB:", newMessage);
-
-      const recipientSocketId = users.get(recipientId);
-      if (recipientSocketId) {
-        io.to(recipientSocketId).emit("receive_message", newMessage);
-        io.to(recipientSocketId).emit("new_message_notification", {
-          senderId,
-          message: "You have a new message!",
-        });
-      }
-
-      socket.emit("message_sent", { success: true });
-    } catch (error) {
-      console.error("Error saving message:", error);
-      socket.emit("message_sent", { success: false, error: "Message failed to send" });
-    }
-  });
+  
   // Handle Like Event
   socket.on("like_post", ({ postId, username }) => {
     console.log(`Post ${postId} liked by ${username}`);
