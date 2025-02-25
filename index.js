@@ -34,6 +34,7 @@ io.on("connection", async (socket) => {
     users.set(userId, socket.id);
     console.log(`User registered: ${userId} -> ${socket.id}`);
   });
+  console.log(users)
 
   // Retrieve previous messages from MongoDB
   socket.on("load_messages", async ({ senderId, recipientId }) => {
@@ -51,7 +52,7 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // Send message event
+  // Send message event (listen the messages from client or user)
   socket.on("send_message", async ({ senderId, recipientId, text }) => {
     console.log(`Message from ${senderId} to ${recipientId}: ${text}`);
 
