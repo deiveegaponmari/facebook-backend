@@ -131,7 +131,7 @@ web_server.use("/user", UserRouter);
 web_server.use("/media", MediaRouter);
 web_server.use("/post", PostRouter);
 web_server.use("/newsfeed",NewsfeedRouter)
-web_server.use("friendlist",FriendListRouter)
+web_server.use("/friendlist",FriendListRouter)
 
 server.listen(process.env.HOST_PORT, process.env.HOST_NAME, () => {
   console.log("Server started successfully");
