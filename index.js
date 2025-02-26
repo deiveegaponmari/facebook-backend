@@ -8,6 +8,8 @@ const cors = require("cors");
 const UserRouter = require("./controller/UserController");
 const MediaRouter = require("./controller/MediaRouter");
 const PostRouter = require("./controller/PostRouter");
+const NewsfeedRouter=require("./controller/NewsfeedRouter")
+const FriendListRouter=require("./controller/FriendListRouter")
 const Message = require("./model/MessageModel");
 
 const web_server = express();
@@ -128,6 +130,8 @@ socket.on("send_message", async ({ senderId, recipientId, text }) => {
 web_server.use("/user", UserRouter);
 web_server.use("/media", MediaRouter);
 web_server.use("/post", PostRouter);
+web_server.use("/newsfeed",NewsfeedRouter)
+web_server.use("friendlist",FriendListRouter)
 
 server.listen(process.env.HOST_PORT, process.env.HOST_NAME, () => {
   console.log("Server started successfully");
