@@ -9,6 +9,7 @@ const expirationTime = now + 86400;
 var token=jwt.sign(data,SECRET_KEY,{
     expiresIn:expirationTime
 })
+console.log(token)
 return token;
 }
 module.exports={
