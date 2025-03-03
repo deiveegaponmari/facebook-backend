@@ -59,7 +59,7 @@ PostRouter.get("/getpost", async (req, res) => {
 
     // Transform data to match frontend expectations
     const formattedData = postFiles.map((file) => ({
-      src: file.imageUrl || file.videoUrl, // Use imageUrl or videoUrl
+      media: file.imageUrl || file.videoUrl, // Use imageUrl or videoUrl
       type: file.imageUrl ? "image" : "video", // Determine type
     }));
 

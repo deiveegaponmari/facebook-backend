@@ -24,7 +24,8 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
-
+ 
+//store active users
 const users = new Map();
 
 // Listen for client connections
