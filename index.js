@@ -11,6 +11,8 @@ const PostRouter = require("./controller/PostRouter");
 const NewsfeedRouter=require("./controller/NewsfeedRouter")
 const FriendListRouter=require("./controller/FriendListRouter")
 const Message = require("./model/MessageModel");
+const sendFriendRequest=require("./middleware/sendFriendRequest")
+const FriendRequestModel=require("./model/FriendRequestModel")
 
 const web_server = express();
 web_server.use(express.json());
@@ -26,18 +28,50 @@ const io = new Server(server, {
 });
  
 //store active users
-const users = new Map();
+const onlineUsers = new Map();
 
 // Listen for client connections
 io.on("connection", async (socket) => {
   console.log(`User connected: ${socket.id}`);
 
   // Store user connection
-  socket.on("register", (userId) => {
-    users.set(userId, socket.id);
+  socket.on("registerUser", (userId) => {
+    onlineUsers.set(userId, socket.id);
     console.log(`User registered: ${userId} -> ${socket.id}`);
-    console.log("Current users map:", users)
+    console.log("Current users map:", onlineUsers)
   });
+
+   // Handle Friend Request
+   socket.on("sendFriendRequest", async ({ senderId, receiverId }) => {
+    console.log(senderId,receiverId)
+    try {
+        // Store in database
+       const newFriendReq= new FriendRequestModel({ senderId, receiverId, status: "pending" });
+       await newFriendReq.save();
+
+        // Notify the recipient if they're online
+        const receiverSocketId = onlineUsers.get(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("receiveFriendRequest", { senderId, receiverId });
+        }
+    } catch (error) {
+        console.error("Error sending friend request:", error);
+    }
+});
+
+// Handle Friend Request Cancellation
+socket.on("cancelFriendRequest", async ({ senderId, receiverId }) => {
+    try {
+        await FriendRequestModel.deleteOne({ senderId, receiverId });
+
+        const receiverSocketId = onlineUsers.get(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("friendRequestCanceled", { senderId, receiverId });
+        }
+    } catch (error) {
+        console.error("Error canceling friend request:", error);
+    }
+});
   //console.log(users)
 // Send message event (listen the messages from client or user)
 socket.on("send_message", async ({ senderId, recipientId, text }) => {
@@ -87,19 +121,19 @@ socket.on("send_message", async ({ senderId, recipientId, text }) => {
 
   
   // Handle Like Event
-  socket.on("like_post", ({ postId, username }) => {
+/*   socket.on("like_post", ({ postId, username }) => {
     console.log(`Post ${postId} liked by ${username}`);
     io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
-  });
+  }); */
   //Handle comment Event
-  socket.on("comment_post", ({ postId, username }) => {
+ /*  socket.on("comment_post", ({ postId, username }) => {
     console.log(`Post ${postId}  comment by ${username}`);
     io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
-  });
+  }); */
 
   //handle friend Request event
 
-  socket.on("friend_request", ({ senderId, recipientId, action }) => {
+/*   socket.on("friend_request", ({ senderId, recipientId, action }) => {
     console.log(`${senderId} sent a friend request to ${recipientId} - ${action}`);
 
     const recipientSocketId = users.get(recipientId);
@@ -108,7 +142,7 @@ socket.on("send_message", async ({ senderId, recipientId, text }) => {
             message: `${senderId} Friend Request ${action}ed!`
         });
     }
-});
+}); */
 
   /* socket.on("notification", ({ action, username }) => {
     console.log(`Post ${action} friendRequest by ${action}`);
@@ -117,9 +151,9 @@ socket.on("send_message", async ({ senderId, recipientId, text }) => {
 
   // Handle user disconnect
   socket.on("disconnect", () => {
-    for (let [userId, socketId] of users.entries()) {
+    for (let [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) {
-        users.delete(userId);
+        onlineUsers.delete(userId);
         console.log(`User ${userId} disconnected`);
         break;
       }
