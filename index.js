@@ -51,6 +51,7 @@ io.on("connection", async (socket) => {
 
         // Notify the recipient if they're online
         const receiverSocketId = onlineUsers.get(receiverId);
+        console.log(receiverSocketId)
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("receiveFriendRequest", { senderId, receiverId });
         }
@@ -72,7 +73,30 @@ socket.on("cancelFriendRequest", async ({ senderId, receiverId }) => {
         console.error("Error canceling friend request:", error);
     }
 });
-  //console.log(users)
+//friendrequest notification
+/* socket.on("notification", ({ receiverId, message }) => {
+  const receiverSocketId = onlineUsers.get(receiverId);
+  if (receiverSocketId) {
+      io.to(receiverSocketId).emit("notification", { message });
+  }
+});
+
+ */
+socket.on("notification", ({ receiverId, message }) => {
+  console.log(`Notification event received for user ${receiverId} with message: ${message}`);
+
+  const receiverSocketId = onlineUsers.get(receiverId);
+  console.log(`Found socket ID for receiver: ${receiverSocketId}`);
+
+  if (receiverSocketId) {
+    io.to(receiverSocketId).emit("notification", { message,receiverId });
+    console.log(` Notification sent to user ${receiverId} at socket ${receiverSocketId}`);
+  } else {
+    console.log(`User ${receiverId} is not online. Notification not sent.`);
+  }
+});
+
+ 
 // Send message event (listen the messages from client or user)
 socket.on("send_message", async ({ senderId, recipientId, text }) => {
   console.log("📨 Received send_message event:", { senderId, recipientId, text });
@@ -88,7 +112,7 @@ socket.on("send_message", async ({ senderId, recipientId, text }) => {
     await newMessage.save();
     console.log("✅ Message Saved to MongoDB:", newMessage);
 
-    const recipientSocketId = users.get(recipientId);
+    const recipientSocketId = onlineUsers.get(recipientId);
     if (recipientSocketId) {
       io.to(recipientSocketId).emit("receive_message", newMessage);
       io.to(recipientSocketId).emit("new_message_notification", {
