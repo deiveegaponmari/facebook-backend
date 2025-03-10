@@ -12,7 +12,9 @@ const NewsfeedRouter=require("./controller/NewsfeedRouter")
 const FriendListRouter=require("./controller/FriendListRouter")
 const Message = require("./model/MessageModel");
 const sendFriendRequest=require("./middleware/sendFriendRequest")
+const FriendRequestController=require("./controller/FriendRequestController")
 const FriendRequestModel=require("./model/FriendRequestModel")
+
 
 const web_server = express();
 web_server.use(express.json());
@@ -191,6 +193,7 @@ web_server.use("/media", MediaRouter);
 web_server.use("/post", PostRouter);
 web_server.use("/newsfeed",NewsfeedRouter)
 web_server.use("/friendlist",FriendListRouter)
+web_server.use("/friendrequest",FriendRequestController)
 
 server.listen(process.env.HOST_PORT, process.env.HOST_NAME, () => {
   console.log("Server started successfully");

@@ -17,8 +17,8 @@ cloudinary.config({
 
 // **Upload Media to Cloudinary & Store in MongoDB**
 MediaRouter.post("/createmedia", upload.single("file"), async (req, res) => {
-  // print('image upload api incoimng with req :- '+req);
-  console.info("image upload api incoimng with req :-", req);
+  console.info("Incoming file upload request");
+
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -36,31 +36,34 @@ MediaRouter.post("/createmedia", upload.single("file"), async (req, res) => {
         // Determine if file is image or video
         const isImage = result.resource_type === "image";
 
-        // Save to MongoDB
+        // Save to MongoDB with `createdAt`
         const newMedia = new mediaModel({
           imageUrl: isImage ? result.secure_url : null,
           videoUrl: !isImage ? result.secure_url : null,
+          createdAt: new Date() // ✅ Ensure createdAt is saved
         });
 
         await newMedia.save();
 
         res.json({ message: "File uploaded successfully", url: result.secure_url });
       }
-    ).end(req.file.buffer); // ✅ Upload directly from memory
+    ).end(req.file.buffer);
   } catch (error) {
-    console.error("File not uploaded:", error);
+    console.error("File upload failed:", error);
     res.status(500).json({ error: "File upload failed" });
   }
 });
+
 // **Fetch Media from MongoDB**
 MediaRouter.get("/getfile", async (req, res) => {
   try {
-    const mediaFiles = await mediaModel.find(); // Fetch from DB
+    const mediaFiles = await mediaModel.find({}, "imageUrl videoUrl createdAt"); // ✅ Fetch createdAt
 
     // Transform data to match frontend expectations
     const formattedData = mediaFiles.map((file) => ({
-      src: file.imageUrl || file.videoUrl, // Use imageUrl or videoUrl
-      type: file.imageUrl ? "image" : "video", // Determine type
+      imageUrl: file.imageUrl,
+      videoUrl: file.videoUrl,
+      createdAt: file.createdAt // ✅ Send createdAt for filtering
     }));
 
     res.json(formattedData);
