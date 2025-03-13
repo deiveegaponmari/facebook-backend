@@ -165,10 +165,10 @@ io.on("connection", async (socket) => {
 
 
   // Handle Like Event
-  /*   socket.on("like_post", ({ postId, username }) => {
+     socket.on("like_post", ({ postId, username }) => {
       console.log(`Post ${postId} liked by ${username}`);
       io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
-    }); */
+    }); 
   //Handle comment Event
   socket.on("comment_post", ({ postId, username }) => {
     console.log(`Post ${postId}  comment by ${username}`);
@@ -177,7 +177,7 @@ io.on("connection", async (socket) => {
 
   //handle friend Request event
 
-  /*   socket.on("friend_request", ({ senderId, recipientId, action }) => {
+    socket.on("friend_request", ({ senderId, recipientId, action }) => {
       console.log(`${senderId} sent a friend request to ${recipientId} - ${action}`);
   
       const recipientSocketId = users.get(recipientId);
@@ -186,12 +186,12 @@ io.on("connection", async (socket) => {
               message: `${senderId} Friend Request ${action}ed!`
           });
       }
-  }); */
+  }); 
 
-  /* socket.on("notification", ({ action, username }) => {
+   socket.on("notification", ({ action, username }) => {
     console.log(`Post ${action} friendRequest by ${action}`);
     io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
-  }) */
+  }) 
 
   // Handle user disconnect
   socket.on("disconnect", () => {
