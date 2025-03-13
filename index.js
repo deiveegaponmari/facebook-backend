@@ -177,7 +177,7 @@ io.on("connection", async (socket) => {
 
   //handle friend Request event
 
-    socket.on("friend_request", ({ senderId, recipientId, action }) => {
+  /*   socket.on("friend_request", ({ senderId, recipientId, action }) => {
       console.log(`${senderId} sent a friend request to ${recipientId} - ${action}`);
   
       const recipientSocketId = users.get(recipientId);
@@ -191,7 +191,7 @@ io.on("connection", async (socket) => {
    socket.on("notification", ({ action, username }) => {
     console.log(`Post ${action} friendRequest by ${action}`);
     io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
-  }) 
+  }) */ 
 
   // Handle user disconnect
   socket.on("disconnect", () => {
