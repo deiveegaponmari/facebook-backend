@@ -9,6 +9,9 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+  likes:{
+    type:Number
+  }
 }, { timestamps: true });
 
 // Custom validation: At least one field should be present

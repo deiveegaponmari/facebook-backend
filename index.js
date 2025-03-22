@@ -14,6 +14,8 @@ const Message = require("./model/MessageModel");
 const sendFriendRequest = require("./middleware/sendFriendRequest")
 const FriendRequestController = require("./controller/FriendRequestController")
 const FriendRequestModel = require("./model/FriendRequestModel")
+const LikeRouter = require("./controller/LikeRouter")
+const CommentRouter=require("./controller/CommentRouter");
 
 
 const web_server = express();
@@ -165,10 +167,11 @@ io.on("connection", async (socket) => {
 
 
   // Handle Like Event
-     socket.on("like_post", ({ postId, username }) => {
-      console.log(`Post ${postId} liked by ${username}`);
-      io.emit("notification", { message: `${username} liked your post!` }); // Broadcast notification
-    }); 
+  socket.on("like_post", ({ postId, userId }) => {
+    console.log(`Post ${postId} liked by ${userId}`);
+    io.emit("notification", { message: `${userId} liked your post!` }); // Broadcast notification
+  });
+
   //Handle comment Event
   socket.on("comment_post", ({ postId, username }) => {
     console.log(`Post ${postId}  comment by ${username}`);
@@ -191,7 +194,7 @@ io.on("connection", async (socket) => {
    socket.on("notification", ({ action, username }) => {
     console.log(`Post ${action} friendRequest by ${action}`);
     io.emit("notification", { message: ` ${username} Friend Request ${action}ed  !` }); // Broadcast notification
-  }) */ 
+  }) */
 
   // Handle user disconnect
   socket.on("disconnect", () => {
@@ -218,6 +221,8 @@ web_server.use("/post", PostRouter);
 web_server.use("/newsfeed", NewsfeedRouter)
 web_server.use("/friendlist", FriendListRouter)
 web_server.use("/friendrequest", FriendRequestController)
+web_server.use("/like", LikeRouter);
+web_server.use("/comment",CommentRouter)
 
 server.listen(process.env.HOST_PORT, process.env.HOST_NAME, () => {
   console.log("Server started successfully");
