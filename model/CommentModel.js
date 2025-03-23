@@ -10,12 +10,13 @@ const CommentSchema = new mongoose.Schema(
       type: String, 
       required: true
     },
-    comment: {
+    text: {
       type: String,
+      required: true
     },
-    username:{
+   /*  username:{
       type:String
-    }
+    } */
   },
   { timestamps: true } 
 );

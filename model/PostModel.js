@@ -22,5 +22,5 @@ postSchema.pre('validate', function (next) {
     next();
   }
 });
-const PostModel = mongoose.model('post', postSchema);
+const PostModel = mongoose.model('Post', postSchema);
 module.exports = PostModel;

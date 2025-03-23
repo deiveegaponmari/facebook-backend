@@ -173,10 +173,14 @@ io.on("connection", async (socket) => {
   });
 
   //Handle comment Event
-  socket.on("comment_post", ({ postId, username }) => {
+ /*  socket.on("comment_post", ({ postId, username }) => {
     console.log(`Post ${postId}  comment by ${username}`);
-    io.emit("notification", { message: `${username} comment your post!` }); // Broadcast notification
-  });
+    io.emit("notification", { message: `${username} comment your post!` });
+  }); */
+
+  socket.on("comment_post", ({ postId, comment }) => {
+    io.emit("receive_comment", { postId, comment });
+});
 
   //handle friend Request event
 

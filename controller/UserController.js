@@ -113,4 +113,20 @@ UserRouter.get("/:id", async (req, res) => {
     }
 });
 
+UserRouter.get("/like/:userId",async(req,res)=>{
+    try{
+        const UserId=req.params.userId;
+        console.log(UserId);
+        const userName=await UserModel.findById(UserId).select("username");
+        console.log(userName)
+        if(!userName){
+            return res.status(404).json({ message: "Username not found" }); 
+        }
+        res.status(200).json(userName);
+    }catch(error){
+        console.error("Error fetching username:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+})
+
 module.exports = UserRouter;
